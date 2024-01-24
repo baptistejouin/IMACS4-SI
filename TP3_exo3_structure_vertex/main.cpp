@@ -34,14 +34,18 @@ int main()
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
 
     // Create an array of vertices to draw a triangle
-    std::array<Vertex2DColor, 3> vertices = {
-        Vertex2DColor{{-0.5f, -0.5f}, {1.f, 0.f, 0.f}}, // Premier sommet
-        Vertex2DColor{{0.5f, -0.5f}, {0.f, 1.f, 0.f}},  // Deuxième sommet
-        Vertex2DColor{{0.0f, 0.5f}, {0.f, 0.f, 1.f}}    // Troisième sommet
+    std::array<Vertex2DColor, 6> vertices = {
+        Vertex2DColor{{-0.5f, -0.5f}, {1.f, 0.f, 0.f}},
+        Vertex2DColor{{0.5f, -0.5f}, {0.f, 1.f, 0.f}},
+        Vertex2DColor{{0.5f, 0.5f}, {0.f, 0.f, 1.f}},
+        // fin premier triangle, début second triangle
+        Vertex2DColor{{-0.5f, -0.5f}, {1.f, 1.f, 0.f}},
+        Vertex2DColor{{-0.5f, 0.5f}, {0.f, 1.f, 1.f}},
+        Vertex2DColor{{0.5f, 0.5f}, {1.f, 0.f, 1.f}},
     };
 
     // Send the vertices to the GPU
-    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(GLfloat), vertices.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex2DColor), vertices.data(), GL_STATIC_DRAW);
 
     // Unbind the VBO to avoid modification
     glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -65,7 +69,7 @@ int main()
     static constexpr GLuint VERTEX_ATTR_COLOR = 8;
     glEnableVertexAttribArray(VERTEX_ATTR_COLOR);
 
-    glVertexAttribPointer(VERTEX_ATTR_COLOR, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex2DColor), reinterpret_cast<const GLvoid*>(offsetof(Vertex2DColor, position)));
+    glVertexAttribPointer(VERTEX_ATTR_COLOR, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex2DColor), reinterpret_cast<const GLvoid*>(offsetof(Vertex2DColor, color)));
 
     // Unbind the VBO to avoid modification
     glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -92,7 +96,7 @@ int main()
         shader.use();
 
         // Draw the triangle
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+        glDrawArrays(GL_TRIANGLES, 0, vertices.size());
 
         // Unbind the VAO
         glBindVertexArray(0);
