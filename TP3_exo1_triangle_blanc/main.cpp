@@ -48,6 +48,8 @@ int main()
     static constexpr GLuint VERTEX_ATTR_POSITION = 0;
     glEnableVertexAttribArray(VERTEX_ATTR_POSITION);
 
+    glVertexAttribPointer(VERTEX_ATTR_POSITION, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), nullptr);
+
     // Unbind the VBO to avoid modification
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
