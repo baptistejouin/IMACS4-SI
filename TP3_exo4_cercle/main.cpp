@@ -5,6 +5,7 @@
 #include "glm/ext/scalar_constants.hpp"
 #include "glm/gtc/constants.hpp"
 #include "p6/p6.h"
+#include "utils/vao.h"
 #include "utils/vbo.h"
 
 /**
@@ -48,7 +49,7 @@ int main()
         "shaders/triangle.fs.glsl"
     );
 
-    // Create a VAO
+    // Create a VBO
     VBO vbo{};
 
     // Bind the VBO
@@ -64,11 +65,10 @@ int main()
     vbo.unbind();
 
     // Create a VAO
-    GLuint vao = 0;
-    glGenVertexArrays(1, &vao);
+    VAO vao{};
 
     // Bind the VAO
-    glBindVertexArray(vao);
+    vao.bind();
 
     // Bind the VBO
     vbo.bind();
@@ -88,7 +88,7 @@ int main()
     vbo.unbind();
 
     // Unbind the VAO to avoid modification
-    glBindVertexArray(0);
+    vao.unbind();
 
     // Declare your infinite update loop.
     ctx.update = [&]() {
@@ -100,7 +100,7 @@ int main()
         glClear(GL_COLOR_BUFFER_BIT);
 
         // Bind the VAO
-        glBindVertexArray(vao);
+        vao.bind();
 
         // Use the default shader provided by glimac
         glimac::bind_default_shader();
@@ -112,7 +112,7 @@ int main()
         glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(vertices.size()));
 
         // Unbind the VAO
-        vbo.unbind();
+        vao.unbind();
     };
 
     // Should be done last. It starts the infinite loop.
