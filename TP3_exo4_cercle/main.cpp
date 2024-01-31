@@ -20,18 +20,15 @@ std::vector<Vertex2DColor> create_disk(float radius, int slices)
 {
     std::vector<Vertex2DColor> vertices;
 
-    // Add the center of the disk
-    vertices.push_back({{0.f, 0.f}, {1.f, 1.f, 1.f}});
-
-    // Add the vertices of the disk
     for (int i = 0; i < slices; ++i)
     {
-        const float angle = i * glm::two_pi<float>() / slices;
-        vertices.push_back({{radius * std::cos(angle), radius * std::sin(angle)}, {1.f, 1.f, 1.f}});
+        // first point of the triangle
+        vertices.push_back({{0.f, 0.f}, {1.f, 1.f, 1.f}});
+        // second point of the triangle
+        vertices.push_back({{radius * std::cos(2 * glm::pi<float>() * i / slices), radius * std::sin(2 * glm::pi<float>() * i / slices)}, {1.f, 1.f, .5f}});
+        // third point of the triangle
+        vertices.push_back({{radius * std::cos(2 * glm::pi<float>() * (i + 1) / slices), radius * std::sin(2 * glm::pi<float>() * (i + 1) / slices)}, {.5f, 1.f, 1.f}});
     }
-
-    // Add the last vertex to close the disk
-    vertices.push_back({{radius, 0.f}, {1.f, 1.f, 1.f}});
 
     return vertices;
 }
@@ -58,7 +55,7 @@ int main()
     vbo.bind();
 
     // Create an array of vertices to draw a quad
-    std::vector<Vertex2DColor> vertices = create_disk(0.5f, 200);
+    std::vector<Vertex2DColor> vertices = create_disk(0.5f, 25);
 
     // Send the vertices to the GPU
     glBufferData(GL_ARRAY_BUFFER, static_cast<GLsizeiptr>(vertices.size() * sizeof(Vertex2DColor)), vertices.data(), GL_STATIC_DRAW);
@@ -115,7 +112,7 @@ int main()
         glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(vertices.size()));
 
         // Unbind the VAO
-        glBindVertexArray(0);
+        vbo.unbind();
     };
 
     // Should be done last. It starts the infinite loop.
