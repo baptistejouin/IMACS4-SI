@@ -3,7 +3,9 @@
 #include <vector>
 #include "glimac/default_shader.hpp"
 #include "glm/ext/scalar_constants.hpp"
+#include "glm/gtc/constants.hpp"
 #include "p6/p6.h"
+#include "utils/vbo.h"
 
 /**
  * @docs: https://julesfouchy.github.io/Learn--OpenGL/TP3/dessiner-un-triangle-blanc#le-vbo
@@ -14,22 +16,22 @@ struct Vertex2DColor {
     glm::vec3 color;
 };
 
-std::vector<Vertex2DColor> generateDiskVertices(float radius, int numSegments)
+std::vector<Vertex2DColor> create_disk(float radius, int slices)
 {
     std::vector<Vertex2DColor> vertices;
 
-    // Ajouter le centre du disque
+    // Add the center of the disk
+    vertices.push_back({{0.f, 0.f}, {1.f, 1.f, 1.f}});
 
-    // Générer les vertices pour former le disque
-    for (int i = 0; i <= numSegments; ++i)
+    // Add the vertices of the disk
+    for (int i = 0; i < slices; ++i)
     {
-        float theta = 2.0f * glm::pi<float>() * static_cast<float>(i) / static_cast<float>(numSegments);
-
-        float x = radius * std::cos(theta);
-        float y = radius * std::sin(theta);
-        vertices.push_back({{0.0f, 0.0f}, {1.0f, 1.0f, 1.0f}});
-        vertices.push_back({{x, y}, {1.0f, 0.5f, 0.0f}});
+        const float angle = i * glm::two_pi<float>() / slices;
+        vertices.push_back({{radius * std::cos(angle), radius * std::sin(angle)}, {1.f, 1.f, 1.f}});
     }
+
+    // Add the last vertex to close the disk
+    vertices.push_back({{radius, 0.f}, {1.f, 1.f, 1.f}});
 
     return vertices;
 }
@@ -50,20 +52,19 @@ int main()
     );
 
     // Create a VAO
-    GLuint vbo = 0;
-    glGenBuffers(1, &vbo);
+    VBO vbo{};
 
     // Bind the VBO
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    vbo.bind();
 
     // Create an array of vertices to draw a quad
-    std::vector<Vertex2DColor> vertices = generateDiskVertices(0.5f, 100);
+    std::vector<Vertex2DColor> vertices = create_disk(0.5f, 200);
 
     // Send the vertices to the GPU
     glBufferData(GL_ARRAY_BUFFER, static_cast<GLsizeiptr>(vertices.size() * sizeof(Vertex2DColor)), vertices.data(), GL_STATIC_DRAW);
 
     // Unbind the VBO to avoid modification
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    vbo.unbind();
 
     // Create a VAO
     GLuint vao = 0;
@@ -73,7 +74,7 @@ int main()
     glBindVertexArray(vao);
 
     // Bind the VBO
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    vbo.bind();
 
     // vertex attribute activation
     static constexpr GLuint VERTEX_ATTR_POSITION = 3;
@@ -87,7 +88,7 @@ int main()
     glVertexAttribPointer(VERTEX_ATTR_COLOR, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex2DColor), reinterpret_cast<const GLvoid*>(offsetof(Vertex2DColor, color)));
 
     // Unbind the VBO to avoid modification
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    vbo.unbind();
 
     // Unbind the VAO to avoid modification
     glBindVertexArray(0);
@@ -119,10 +120,4 @@ int main()
 
     // Should be done last. It starts the infinite loop.
     ctx.start();
-
-    // Free the memory allocated for the VBO
-    glDeleteBuffers(1, &vbo);
-
-    // Free the memory allocated for the VAO
-    glDeleteVertexArrays(1, &vao);
 }
