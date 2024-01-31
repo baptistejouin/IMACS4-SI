@@ -1,3 +1,4 @@
+#include <utils/ibo.h>
 #include <glm/glm.hpp>
 #include "glimac/default_shader.hpp"
 #include "p6/p6.h"
@@ -34,14 +35,11 @@ int main()
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
 
     // Create an array of vertices to draw a triangle
-    std::array<Vertex2DColor, 6> vertices = {
-        Vertex2DColor{{-0.5f, -0.5f}, {1.f, 0.f, 0.f}},
-        Vertex2DColor{{0.5f, -0.5f}, {0.f, 1.f, 0.f}},
-        Vertex2DColor{{0.5f, 0.5f}, {0.f, 0.f, 1.f}},
-        // fin premier triangle, début second triangle
-        Vertex2DColor{{-0.5f, -0.5f}, {1.f, 1.f, 0.f}},
-        Vertex2DColor{{-0.5f, 0.5f}, {0.f, 1.f, 1.f}},
-        Vertex2DColor{{0.5f, 0.5f}, {1.f, 0.f, 1.f}},
+    std::array<Vertex2DColor, 4> vertices = {
+        Vertex2DColor{{-0.5f, -0.5f}, {1.f, 0.f, 0.f}}, // Sommet 0
+        Vertex2DColor{{+0.5f, -0.5f}, {0.f, 1.f, 0.f}}, // Sommet 1
+        Vertex2DColor{{+0.5f, +0.5f}, {0.f, 0.f, 1.f}}, // Sommet 2
+        Vertex2DColor{{-0.5f, +0.5f}, {1.f, 1.f, 1.f}}, // Sommet 3
     };
 
     // Send the vertices to the GPU
@@ -50,12 +48,29 @@ int main()
     // Unbind the VBO to avoid modification
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
+    // Create a IBO
+    IBO ibo{};
+
+    ibo.bind();
+
+    uint32_t indices[] = {
+        0, 1, 2,
+        0, 2, 3
+    };
+
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
+    ibo.unbind();
+
     // Create a VAO
     GLuint vao = 0;
     glGenVertexArrays(1, &vao);
 
     // Bind the VAO
     glBindVertexArray(vao);
+
+    // Bind the IBO
+    ibo.bind();
 
     // Bind the VBO
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
@@ -96,7 +111,7 @@ int main()
         shader.use();
 
         // Draw the triangle
-        glDrawArrays(GL_TRIANGLES, 0, vertices.size());
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
         // Unbind the VAO
         glBindVertexArray(0);
