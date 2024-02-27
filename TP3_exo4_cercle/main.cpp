@@ -5,6 +5,7 @@
 #include "glm/ext/scalar_constants.hpp"
 #include "glm/gtc/constants.hpp"
 #include "p6/p6.h"
+#include "utils/ibo.h"
 #include "utils/vao.h"
 #include "utils/vbo.h"
 
@@ -17,7 +18,7 @@ struct Vertex2DColor {
     glm::vec3 color;
 };
 
-std::vector<Vertex2DColor> create_disk(float radius, int slices)
+std::vector<Vertex2DColor> get_disk_vertex(float radius, int slices)
 {
     std::vector<Vertex2DColor> vertices;
 
@@ -32,6 +33,23 @@ std::vector<Vertex2DColor> create_disk(float radius, int slices)
     }
 
     return vertices;
+}
+
+std::vector<uint32_t> get_disk_indices(int slices)
+{
+    std::vector<uint32_t> indices;
+
+    for (int i = 0; i < slices; ++i)
+    {
+        // first point of the triangle
+        indices.push_back(0);
+        // second point of the triangle
+        indices.push_back(3 * i + 1);
+        // third point of the triangle
+        indices.push_back(3 * i + 2);
+    }
+
+    return indices;
 }
 
 int main()
@@ -56,7 +74,7 @@ int main()
     vbo.bind();
 
     // Create an array of vertices to draw a quad
-    std::vector<Vertex2DColor> vertices = create_disk(0.5f, 25);
+    std::vector<Vertex2DColor> vertices = get_disk_vertex(0.5f, 25);
 
     // Send the vertices to the GPU
     glBufferData(GL_ARRAY_BUFFER, static_cast<GLsizeiptr>(vertices.size() * sizeof(Vertex2DColor)), vertices.data(), GL_STATIC_DRAW);
@@ -64,11 +82,29 @@ int main()
     // Unbind the VBO to avoid modification
     vbo.unbind();
 
+    // Create a IBO
+    IBO ibo{};
+
+    // Bind the IBO
+    ibo.bind();
+
+    // Create an array of indices
+    std::vector<uint32_t> indices = get_disk_indices(25);
+
+    // Send the indices to the GPU
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, static_cast<GLsizeiptr>(indices.size() * sizeof(uint32_t)), indices.data(), GL_STATIC_DRAW);
+
+    // Unbind the IBO to avoid modification
+    ibo.unbind();
+
     // Create a VAO
     VAO vao{};
 
     // Bind the VAO
     vao.bind();
+
+    // Bind the IBO
+    ibo.bind();
 
     // Bind the VBO
     vbo.bind();
@@ -109,7 +145,8 @@ int main()
         shader.use();
 
         // Draw the triangle
-        glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(vertices.size()));
+        // glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(vertices.size()));
+        glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(indices.size()), GL_UNSIGNED_INT, nullptr);
 
         // Unbind the VAO
         vao.unbind();
